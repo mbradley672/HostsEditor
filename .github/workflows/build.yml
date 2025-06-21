@@ -26,6 +26,11 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
       
       - name: Install dependencies
         run: npm install
@@ -63,11 +68,6 @@ jobs:
             target: x86_64-unknown-linux-gnu
             arch: x64
             os_name: linux-x64
-          # Linux ARM64
-          - platform: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            arch: arm64
-            os_name: linux-arm64
           # Windows x86_64
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
@@ -98,22 +98,7 @@ jobs:
         if: matrix.platform == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            # Install cross-compilation tools for ARM64
-            sudo apt-get install -y gcc-aarch64-linux-gnu
-            # Add ARM64 architecture
-            sudo dpkg --add-architecture arm64
-            sudo apt-get update
-            # Install ARM64 libraries
-            sudo apt-get install -y libgtk-3-dev:arm64 libwebkit2gtk-4.0-dev:arm64 libappindicator3-dev:arm64 librsvg2-dev:arm64 patchelf:arm64
-            # Set environment variables for cross-compilation
-            echo "PKG_CONFIG_ALLOW_CROSS=1" >> $GITHUB_ENV
-            echo "PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig" >> $GITHUB_ENV
-            echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          else
-            # Install regular x86_64 libraries
-            sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
-          fi
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Install dependencies
         run: npm install
@@ -151,16 +136,16 @@ jobs:
         with:
           name: hosts-editor-macos-intel
           path: |
-            src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app
+            src-tauri/target/${{ matrix.target }}/release/*.app
             src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
 
-      - name: Upload macOS Apple Silicon artifacts
+      - name: Upload macOS ARM64 artifacts
         if: matrix.platform == 'macos-latest' && matrix.arch == 'arm64'
         uses: actions/upload-artifact@v4
         with:
           name: hosts-editor-macos-arm64
           path: |
-            src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app
+            src-tauri/target/${{ matrix.target }}/release/*.app
             src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
 
       - name: Upload Linux x64 artifacts
@@ -173,158 +158,21 @@ jobs:
             src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
             src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
 
-      - name: Upload Linux ARM64 artifacts
-        if: matrix.platform == 'ubuntu-latest' && matrix.arch == 'arm64'
-        uses: actions/upload-artifact@v4
-        with:
-          name: hosts-editor-linux-arm64
-          path: |
-            src-tauri/target/${{ matrix.target }}/release/hosts-editor
-            src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
-            src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
-
   release:
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
     steps:
-      - uses: actions/checkout@v4
-
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Hosts Editor ${{ github.ref }}
-          body: |
-            ## Changes in this Release
-            - Cross-platform hosts file editor
-            - GUI with backup management
-            - Search and text editing capabilities
-            - Single executable with no dependencies
-
-            ## Download
-            - **Windows x64**: Download the `-windows-x64.exe` or `-windows-x64.msi` file
-            - **Windows ARM64**: Download the `-windows-arm64.exe` or `-windows-arm64.msi` file (for ARM-based Windows devices)
-            - **macOS Intel**: Download the `-macos-intel.dmg` file (for Intel Macs)
-            - **macOS Apple Silicon**: Download the `-macos-arm64.dmg` file (for M1/M2/M3 Macs)
-            - **Linux x64**: Download the `-linux-x64.AppImage` or `-linux-x64.deb` file
-            - **Linux ARM64**: Download the `-linux-arm64.AppImage` or `-linux-arm64.deb` file (for ARM-based Linux)
-
-            ## Installation
-            - **Windows**: Run the installer or executable directly
-            - **macOS**: Open the DMG and drag to Applications
-            - **Linux**: Make the AppImage executable or install the DEB package
+          files: artifacts/**/*
           draft: false
           prerelease: false
-
-      # Windows x64
-      - name: Upload Windows x64 EXE
-        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: hosts-editor-windows-x64/hosts-editor.exe
-          asset_name: hosts-editor-windows-x64.exe
-          asset_content_type: application/octet-stream
-
-      - name: Upload Windows x64 MSI
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: hosts-editor-windows-x64/*.msi
-          asset_name: hosts-editor-windows-x64.msi
-          asset_content_type: application/octet-stream
-
-      # Windows ARM64
-      - name: Upload Windows ARM64 EXE
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: hosts-editor-windows-arm64/hosts-editor.exe
-          asset_name: hosts-editor-windows-arm64.exe
-          asset_content_type: application/octet-stream
-
-      - name: Upload Windows ARM64 MSI
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: hosts-editor-windows-arm64/*.msi
-          asset_name: hosts-editor-windows-arm64.msi
-          asset_content_type: application/octet-stream
-
-      # macOS Intel
-      - name: Upload macOS Intel DMG
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: hosts-editor-macos-intel/*.dmg
-          asset_name: hosts-editor-macos-intel.dmg
-          asset_content_type: application/octet-stream
-
-      # macOS Apple Silicon
-      - name: Upload macOS Apple Silicon DMG
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: hosts-editor-macos-arm64/*.dmg
-          asset_name: hosts-editor-macos-arm64.dmg
-          asset_content_type: application/octet-stream
-
-      # Linux x64
-      - name: Upload Linux x64 AppImage
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: hosts-editor-linux-x64/*.AppImage
-          asset_name: hosts-editor-linux-x64.AppImage
-          asset_content_type: application/octet-stream
-
-      - name: Upload Linux x64 DEB
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: hosts-editor-linux-x64/*.deb
-          asset_name: hosts-editor-linux-x64.deb
-          asset_content_type: application/octet-stream
-
-      # Linux ARM64
-      - name: Upload Linux ARM64 AppImage
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: hosts-editor-linux-arm64/*.AppImage
-          asset_name: hosts-editor-linux-arm64.AppImage
-          asset_content_type: application/octet-stream
-
-      - name: Upload Linux ARM64 DEB
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: hosts-editor-linux-arm64/*.deb
-          asset_name: hosts-editor-linux-arm64.deb
-          asset_content_type: application/octet-stream
