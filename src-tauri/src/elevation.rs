@@ -26,7 +26,6 @@ pub async fn request_elevation() -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(windows)]
 async fn is_elevated_windows() -> Result<bool, Box<dyn std::error::Error>> {
-    
     // This is a simplified check - in a real implementation, you'd want to use
     // Windows API calls to check for admin privileges
     // For now, we'll try to write to a system directory as a test
@@ -46,7 +45,7 @@ async fn is_elevated_unix() -> Result<bool, Box<dyn std::error::Error>> {
 #[cfg(windows)]
 async fn request_elevation_windows() -> Result<(), Box<dyn std::error::Error>> {
     let current_exe = std::env::current_exe()?;
-    
+
     // Use PowerShell to request elevation
     let output = Command::new("powershell")
         .args(&[
@@ -57,7 +56,7 @@ async fn request_elevation_windows() -> Result<(), Box<dyn std::error::Error>> {
             ),
         ])
         .output()?;
-    
+
     if output.status.success() {
         // The elevated process should have started
         // We'll exit this instance
@@ -70,7 +69,7 @@ async fn request_elevation_windows() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(not(windows))]
 async fn request_elevation_unix() -> Result<(), Box<dyn std::error::Error>> {
     let current_exe = std::env::current_exe()?;
-    
+
     // Try different elevation methods
     let elevation_commands = vec![
         ("pkexec", vec![current_exe.to_string_lossy().to_string()]),
@@ -78,7 +77,7 @@ async fn request_elevation_unix() -> Result<(), Box<dyn std::error::Error>> {
         ("gksudo", vec![current_exe.to_string_lossy().to_string()]),
         ("kdesu", vec![current_exe.to_string_lossy().to_string()]),
     ];
-    
+
     for (cmd, args) in elevation_commands {
         if Command::new(cmd).args(&args).spawn().is_ok() {
             // The elevated process should have started
@@ -86,7 +85,7 @@ async fn request_elevation_unix() -> Result<(), Box<dyn std::error::Error>> {
             std::process::exit(0);
         }
     }
-    
+
     Err("No suitable elevation method found".into())
 }
 
@@ -94,7 +93,7 @@ async fn request_elevation_unix() -> Result<(), Box<dyn std::error::Error>> {
 #[allow(dead_code)]
 pub async fn ensure_hosts_file_access() -> Result<bool, Box<dyn std::error::Error>> {
     let hosts_path = crate::hosts::get_hosts_file_path();
-    
+
     // Try to open the file for writing
     match std::fs::OpenOptions::new().append(true).open(&hosts_path) {
         Ok(_) => Ok(true), // We have access
