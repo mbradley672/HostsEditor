@@ -23,14 +23,13 @@ jobs:
           cache: 'npm'
       
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy      
-      
+        uses: dtolnay/rust-toolchain@stable        with:
+          components: rustfmt, clippy
+
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev libsoup2.4-dev patchelf
       
       - name: Install dependencies
         run: npm install
