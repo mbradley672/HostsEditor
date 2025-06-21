@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hosts Editor</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        min-height: 100vh;
+      }
+
+      .header {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        color: #666;
+        font-size: 1.1rem;
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 20px;
+        height: calc(100vh - 140px);
+      }      .hosts-panel {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .controls-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+      }
+
+      .search-container {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .search-container input {
+        flex: 1;
+        padding: 10px;
+        border: 2px solid #e1e8ed;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+      }
+
+      .search-container input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .text-editor {
+        background: #f8f9ff;
+        border: 2px solid #e1e8ed;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+      }
+
+      .editor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .editor-header h3 {
+        margin: 0;
+        color: #333;
+        font-size: 1.2rem;
+      }
+
+      .editor-controls {
+        display: flex;
+        gap: 10px;
+      }
+
+      .text-editor textarea {
+        width: 100%;
+        height: 300px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        resize: vertical;
+        background: white;
+      }
+
+      .text-editor textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .hosts-entry.filtered-out {
+        display: none;
+      }
+
+      .sidebar {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .panel-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-bottom: 10px;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+      }
+
+      .btn-secondary:hover {
+        box-shadow: 0 4px 12px rgba(240, 147, 251, 0.4);
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+      }
+
+      .btn-danger:hover {
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+      }
+
+      .btn-small {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #555;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e1e8ed;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .hosts-table {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 20px;
+      }
+
+      .hosts-entry {
+        background: #f8f9ff;
+        border: 2px solid #e1e8ed;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+      }
+
+      .hosts-entry:hover {
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+      }
+
+      .hosts-entry.disabled {
+        opacity: 0.6;
+        background: #f5f5f5;
+      }
+
+      .entry-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .entry-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .entry-fields {
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .entry-field {
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+
+      .entry-field:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 24px;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(26px);
+      }
+
+      .backup-list {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .backup-item {
+        background: #f8f9ff;
+        border: 1px solid #e1e8ed;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+      }
+
+      .backup-item:hover {
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+      }
+
+      .backup-name {
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #333;
+      }
+
+      .backup-date {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 10px;
+      }
+
+      .backup-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .status-bar {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 8px;
+        padding: 10px 20px;
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      }
+
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ff6b6b;
+      }
+
+      .status-dot.elevated {
+        background: #51cf66;
+      }
+
+      .loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      @media (max-width: 768px) {
+        .main-content {
+          grid-template-columns: 1fr;
+          grid-template-rows: 1fr auto;
+        }
+
+        .entry-fields {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Hosts Editor</h1>
+        <p>Manage your system's hosts file with ease and create backups</p>
+      </div>
+
+      <div class="main-content">        <div class="hosts-panel">
+          <div class="panel-title">Hosts Entries</div>
+          
+          <div class="hosts-controls">
+            <div class="controls-row">
+              <button class="btn" onclick="addNewEntry()">Add New Entry</button>
+              <button class="btn btn-secondary" onclick="loadHostsFile()">Reload Hosts File</button>
+              <button class="btn" onclick="saveHostsFile()">Save Changes</button>
+              <button class="btn btn-secondary" onclick="toggleTextEditor()">Text Editor</button>
+            </div>
+            
+            <div class="search-container">
+              <input type="text" id="searchInput" placeholder="Search hosts entries..." onkeyup="filterEntries()">
+              <button class="btn btn-small" onclick="clearSearch()">Clear</button>
+            </div>
+          </div>
+
+          <div class="hosts-table" id="hostsTable">
+            <!-- Hosts entries will be populated here -->
+          </div>
+          
+          <div class="text-editor hidden" id="textEditor">
+            <div class="editor-header">
+              <h3>Raw Hosts File Editor</h3>
+              <div class="editor-controls">
+                <button class="btn btn-small" onclick="loadRawText()">Load Raw</button>
+                <button class="btn btn-small" onclick="parseRawText()">Parse to Entries</button>
+                <button class="btn btn-small" onclick="toggleTextEditor()">Close Editor</button>
+              </div>
+            </div>
+            <textarea id="rawHostsText" placeholder="Edit the raw hosts file content here..."></textarea>
+          </div>
+        </div>
+
+        <div class="sidebar">
+          <div class="panel-title">Backups</div>
+          
+          <div class="backup-controls">
+            <div class="form-group">
+              <label for="backupName">Backup Name:</label>
+              <input type="text" id="backupName" placeholder="Enter backup name">
+            </div>
+            <button class="btn" onclick="createBackup()">Create Backup</button>
+            <button class="btn btn-secondary" onclick="loadBackups()">Refresh List</button>
+          </div>
+
+          <div class="backup-list" id="backupList">
+            <!-- Backup list will be populated here -->
+          </div>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <div class="status-indicator">
+          <div class="status-dot" id="elevationStatus"></div>
+          <span id="elevationText">Checking permissions...</span>
+        </div>
+        <div>
+          <button class="btn btn-small" onclick="requestElevation()" id="elevateBtn">Request Admin</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

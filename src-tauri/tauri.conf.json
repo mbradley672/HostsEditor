@@ -1,0 +1,83 @@
+{  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:1421",
+    "distDir": "../dist",
+    "withGlobalTauri": false
+  },
+  "package": {
+    "productName": "Hosts Editor",
+    "version": "1.0.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "all": false,
+        "open": true
+      },
+      "dialog": {
+        "all": false,
+        "ask": true,
+        "confirm": true,
+        "message": true,
+        "open": true,
+        "save": true
+      },
+      "fs": {
+        "all": false,
+        "readFile": true,
+        "writeFile": true,
+        "exists": true,
+        "createDir": true,
+        "removeFile": true,
+        "copyFile": true,
+        "scope": ["$HOME/.hosts-editor/**", "$HOME/hosts-backup/**", "/etc/hosts", "C:\\Windows\\System32\\drivers\\etc\\hosts"]
+      },
+      "path": {
+        "all": true
+      },
+      "os": {
+        "all": true
+      }
+    },    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "com.hostseditor.app",
+      "category": "Utility",
+      "shortDescription": "Cross-platform hosts file editor",
+      "longDescription": "A modern, cross-platform hosts file editor with GUI, backup management, and search capabilities.",
+      "externalBin": [],
+      "copyright": "",
+      "license": "",
+      "licenseFile": "",
+      "macOS": {
+        "frameworks": [],
+        "minimumSystemVersion": "",
+        "exceptionDomain": "",
+        "signingIdentity": null,
+        "providerShortName": null,
+        "entitlements": null
+      },
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      }
+    },
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "resizable": true,
+        "title": "Hosts Editor",
+        "width": 1000,
+        "height": 700,
+        "minWidth": 800,
+        "minHeight": 600
+      }
+    ]
+  }
+}

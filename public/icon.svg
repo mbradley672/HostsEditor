@@ -1,0 +1,20 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="24" fill="url(#grad1)"/>
+  <rect x="20" y="30" width="88" height="68" rx="8" fill="white" opacity="0.9"/>
+  <rect x="28" y="42" width="72" height="4" rx="2" fill="#667eea"/>
+  <rect x="28" y="52" width="60" height="4" rx="2" fill="#667eea"/>
+  <rect x="28" y="62" width="66" height="4" rx="2" fill="#667eea"/>
+  <rect x="28" y="72" width="54" height="4" rx="2" fill="#667eea"/>
+  <rect x="28" y="82" width="70" height="4" rx="2" fill="#667eea"/>
+  <circle cx="94" cy="44" r="6" fill="#51cf66"/>
+  <circle cx="94" cy="54" r="6" fill="#ff6b6b"/>
+  <circle cx="94" cy="64" r="6" fill="#51cf66"/>
+  <circle cx="94" cy="74" r="6" fill="#51cf66"/>
+  <circle cx="94" cy="84" r="6" fill="#ff6b6b"/>
+</svg>
