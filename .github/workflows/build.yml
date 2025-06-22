@@ -13,7 +13,7 @@ env:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       
@@ -31,7 +31,7 @@ jobs:
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential curl wget file libssl-dev libgtk-3-dev libwebkit2gtk-4.1-dev libjavascriptcoregtk-4.1-dev libappindicator3-dev librsvg2-dev libsoup2.4-dev patchelf
+          sudo apt-get install -y build-essential curl wget file libssl-dev libgtk-3-dev libwebkit2gtk-4.0-dev libjavascriptcoregtk-4.0-dev libappindicator3-dev librsvg2-dev libsoup2.4-dev patchelf
       
       - name: Install dependencies
         run: npm install
@@ -65,7 +65,7 @@ jobs:
             arch: arm64
             os_name: macos-arm64
           # Linux x86_64
-          - platform: ubuntu-latest
+          - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             arch: x64
             os_name: linux-x64
@@ -88,20 +88,31 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'      
+          cache: 'npm'
+
+      - name: Debug npm and node versions
+        run: |
+          echo "Node version: $(node --version)"
+          echo "npm version: $(npm --version)"
+          echo "npm location: $(which npm)"
+          echo "PATH: $PATH"
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
       
       - name: Install Linux dependencies
-        if: matrix.platform == 'ubuntu-latest'
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential curl wget file libssl-dev libgtk-3-dev libwebkit2gtk-4.1-dev libjavascriptcoregtk-4.1-dev libappindicator3-dev librsvg2-dev libsoup2.4-dev patchelf
+          sudo apt-get install -y build-essential curl wget file libssl-dev libgtk-3-dev libwebkit2gtk-4.0-dev libjavascriptcoregtk-4.0-dev libappindicator3-dev librsvg2-dev libsoup2.4-dev patchelf
 
       - name: Install dependencies
         run: npm install
+
+      - name: Generate Tauri icons
+        run: npx tauri icon src-tauri/icons/icon.png
 
       - name: Build application
         run: npm run tauri build -- --target ${{ matrix.target }}
@@ -149,7 +160,7 @@ jobs:
             src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
 
       - name: Upload Linux x64 artifacts
-        if: matrix.platform == 'ubuntu-latest' && matrix.arch == 'x64'
+        if: matrix.platform == 'ubuntu-22.04' && matrix.arch == 'x64'
         uses: actions/upload-artifact@v4
         with:
           name: hosts-editor-linux-x64
