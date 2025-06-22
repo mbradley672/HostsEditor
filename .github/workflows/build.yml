@@ -35,11 +35,17 @@ jobs:
       
       - name: Install dependencies
         run: npm install
-      
+
+      - name: Generate Tauri icons
+        run: npx tauri icon src-tauri/icons/icon.png
+
+      - name: Build frontend
+        run: npm run build
+
       - name: Check formatting
         run: cargo fmt --all -- --check
         working-directory: src-tauri
-      
+
       - name: Run clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
         working-directory: src-tauri
