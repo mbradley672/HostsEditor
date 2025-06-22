@@ -2,7 +2,7 @@ name: 'Development Build'
 
 on:
   push:
-    branches: [ main, develop, test-workflow-changes ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
 
