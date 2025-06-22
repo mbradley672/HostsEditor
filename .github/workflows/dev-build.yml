@@ -28,12 +28,9 @@ jobs:
           - os: macos-latest
             target: aarch64-apple-darwin
             arch: arm64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             arch: x64
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            arch: arm64
 
     steps:
       - uses: actions/checkout@v4
@@ -50,25 +47,17 @@ jobs:
           targets: ${{ matrix.target }}
       
       - name: Install Linux dependencies
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
-          # Cross-compilation for ARM64
-          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            sudo apt-get install -y gcc-aarch64-linux-gnu
-          fi
-      
-      - name: Setup cross-compilation for Linux ARM64
-        if: matrix.os == 'ubuntu-latest' && matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-          echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> $GITHUB_ENV
-          echo "AR_aarch64_unknown_linux_gnu=aarch64-linux-gnu-ar" >> $GITHUB_ENV
-          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
-      
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libjavascriptcoregtk-4.0-dev libappindicator3-dev librsvg2-dev libsoup2.4-dev patchelf
+
       - name: Install dependencies
-        run: npm install
+        run: |
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "PATH: $PATH"
+          npm install
       
       - name: Build Tauri app
         run: npm run tauri:build -- --target ${{ matrix.target }}
@@ -95,7 +84,7 @@ jobs:
             src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app
       
       - name: Upload artifacts (Linux)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-22.04'
         uses: actions/upload-artifact@v4
         with:
           name: hosts-editor-linux-${{ matrix.arch }}

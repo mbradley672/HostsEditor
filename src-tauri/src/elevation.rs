@@ -48,7 +48,7 @@ async fn request_elevation_windows() -> Result<(), Box<dyn std::error::Error>> {
 
     // Use PowerShell to request elevation
     let output = Command::new("powershell")
-        .args(&[
+        .args([
             "-Command",
             &format!(
                 "Start-Process '{}' -Verb RunAs -Wait",
@@ -62,7 +62,7 @@ async fn request_elevation_windows() -> Result<(), Box<dyn std::error::Error>> {
         // We'll exit this instance
         std::process::exit(0);
     } else {
-        return Err("Failed to request elevation".into());
+        Err("Failed to request elevation".into())
     }
 }
 
