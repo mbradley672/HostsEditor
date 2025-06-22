@@ -1,6 +1,6 @@
 [package]
 name = "hosts-editor"
-version = "1.0.0"
+version = "1.0.4"
 description = "Cross-platform hosts file editor with backup management"
 authors = ["Your Name"]
 license = "MIT"
